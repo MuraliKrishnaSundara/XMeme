@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,8 +46,14 @@ public class PortfolioManagerApplication {
   //  2. You can use "./gradlew build" to check if your code builds successfully.
 
   public static List<String> mainReadFile(String[] args) throws IOException, URISyntaxException {
-
-     return Collections.emptyList();
+    if(args.length == 0) throw new IllegalArgumentException("JSON File");
+    File jsonFile = resolveFileFromResources(args[0]);
+    PortfolioTrade[] trades = getObjectMapper().readValue(jsonFile, PortfolioTrade[].class);
+    List<String> symbols = new ArrayList<>();
+    for(PortfolioTrade trade: trades) {
+      symbols.add(trade.getSymbol());
+    }
+     return symbols;
   }
 
 

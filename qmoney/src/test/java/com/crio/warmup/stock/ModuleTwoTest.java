@@ -43,6 +43,7 @@ class ModuleTwoTest {
     //when
     Assertions.assertThrows(RuntimeException.class, () -> PortfolioManagerApplication
         .mainReadQuotes(new String[]{filename, "2017-12-12"}));
+
   }
 
 

@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock.log;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -28,4 +27,5 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 
     log.error(logEventJsonObjNode.toString(), e);
   }
+
 }

@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock.dto;
 
 import java.time.LocalDate;
@@ -56,6 +55,5 @@ public class PortfolioTrade {
   public TradeType getTradeType() {
     return tradeType;
   }
-  //solution
 
 }

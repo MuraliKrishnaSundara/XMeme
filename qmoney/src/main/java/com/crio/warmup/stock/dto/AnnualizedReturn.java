@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock.dto;
 
 public class AnnualizedReturn {
@@ -24,4 +23,5 @@ public class AnnualizedReturn {
   public Double getTotalReturns() {
     return totalReturns;
   }
+
 }

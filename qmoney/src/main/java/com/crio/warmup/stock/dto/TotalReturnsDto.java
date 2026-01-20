@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock.dto;
 
 public class TotalReturnsDto {
@@ -26,4 +25,5 @@ public class TotalReturnsDto {
   public void setClosingPrice(Double closingPrice) {
     this.closingPrice = closingPrice;
   }
+
 }

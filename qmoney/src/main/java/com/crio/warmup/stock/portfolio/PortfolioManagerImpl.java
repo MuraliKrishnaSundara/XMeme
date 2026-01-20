@@ -1,0 +1,97 @@
+package com.crio.warmup.stock.portfolio;
+
+import com.crio.warmup.stock.dto.AnnualizedReturn;
+import com.crio.warmup.stock.dto.Candle;
+import com.crio.warmup.stock.dto.PortfolioTrade;
+import com.crio.warmup.stock.dto.TiingoCandle;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+public class PortfolioManagerImpl implements PortfolioManager {
+
+  private RestTemplate restTemplate;
+
+  protected PortfolioManagerImpl(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+  }
+
+  private Comparator<AnnualizedReturn> getComparator() {
+    return Comparator.comparing(AnnualizedReturn::getAnnualizedReturn).reversed();
+  }
+
+  public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate,PortfolioTrade trade,Double buyPrice,Double sellPrice) {
+    double totalReturn = (sellPrice - buyPrice) / buyPrice;
+    double totalYears = yearsBetween(trade.getPurchaseDate(), endDate);
+    double annualizedReturn = Math.pow(1 + totalReturn, 1 / totalYears) - 1;
+    return new AnnualizedReturn(trade.getSymbol(), annualizedReturn, totalReturn);
+  }
+
+  public static double yearsBetween(LocalDate startDate, LocalDate endDate) {
+    long total_num_days = ChronoUnit.DAYS.between(startDate, endDate);
+    return total_num_days / 365.24;
+  }
+
+  public List<Candle> getStockQuote(String symbol, LocalDate from, LocalDate to) throws JsonProcessingException {
+    TiingoCandle[] candles = restTemplate.getForObject(
+      buildUri(symbol, from, to),
+      TiingoCandle[].class
+      );
+     return Arrays.asList(candles);
+  }
+
+  protected String buildUri(String symbol, LocalDate startDate, LocalDate endDate) {
+    String baseUrl = "https://api.tiingo.com/tiingo/daily";
+    return UriComponentsBuilder
+            .fromHttpUrl(baseUrl)
+            .pathSegment(symbol, "prices")
+            .queryParam("startDate", startDate)
+            .queryParam("endDate", endDate)
+            .queryParam("token", getToken())
+            .toUriString();
+  }
+
+  private static String getToken() {
+    return "63eced04ffd850143a0d17746a655c466c9bfced";
+  }
+
+  @Override
+  public List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades, LocalDate endDate) {
+    
+    List<AnnualizedReturn> annualizedReturns = new ArrayList<>();
+ 
+    for (PortfolioTrade trade : portfolioTrades) {
+
+      List<Candle> candles;
+      try {
+        candles = getStockQuote(trade.getSymbol(), trade.getPurchaseDate(), endDate);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+      if (candles == null || candles.isEmpty()) continue;
+
+      //sort stock data based on date 
+      candles.sort(Comparator.comparing(Candle::getDate));
+      
+      Candle firstCandle = candles.get(0);
+      Candle lastCandle = candles.get(candles.size() - 1);
+      
+      double buyPrice = firstCandle.getOpen();
+      double sellPrice = lastCandle.getClose();
+      
+      AnnualizedReturn annualizedReturn = calculateAnnualizedReturns(endDate, trade, buyPrice, sellPrice);
+      annualizedReturns.add(annualizedReturn);
+
+    }
+    //sort annualized returns
+    annualizedReturns.sort(getComparator());
+    return annualizedReturns;
+  }
+
+}

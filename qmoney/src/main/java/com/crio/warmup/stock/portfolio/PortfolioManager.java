@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface PortfolioManager {
-  
+
   List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades, LocalDate endDate);
 
 }

@@ -15,7 +15,6 @@ configurations {
 
 mainClassName = 'com.crio.warmup.stock.PortfolioManagerApplication'
 
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -45,5 +44,13 @@ test {
     useJUnitPlatform()
 }
 
-
-
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId =  'com.crio.warmup'
+            artifactId = 'annual-return'
+            version = '1.0.0'
+            from components.java
+        }
+    }
+}

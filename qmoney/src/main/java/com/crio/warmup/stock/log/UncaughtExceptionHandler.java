@@ -27,5 +27,5 @@ public class UncaughtExceptionHandler implements Thread.UncaughtExceptionHandler
 
     log.error(logEventJsonObjNode.toString(), e);
   }
-
+  
 }

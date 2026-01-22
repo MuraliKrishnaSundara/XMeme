@@ -4,6 +4,8 @@ import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.quotes.StockQuoteServiceFactory;
+import com.crio.warmup.stock.quotes.StockQuotesService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -17,9 +19,19 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class PortfolioManagerImpl implements PortfolioManager {
 
   private RestTemplate restTemplate;
+  private String provider;
+  private StockQuotesService stockQuotesService;
 
   protected PortfolioManagerImpl(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
+  }
+
+  protected PortfolioManagerImpl(String provider, RestTemplate restTemplate) {
+    this.provider = provider;
+  }
+
+  protected PortfolioManagerImpl(StockQuotesService stockQuotesService) {
+    this.stockQuotesService = stockQuotesService;
   }
 
   private Comparator<AnnualizedReturn> getComparator() {
@@ -70,8 +82,16 @@ public class PortfolioManagerImpl implements PortfolioManager {
 
       List<Candle> candles;
       try {
-        candles = getStockQuote(trade.getSymbol(), trade.getPurchaseDate(), endDate);
+        //old
+        // candles = getStockQuote(trade.getSymbol(), trade.getPurchaseDate(), endDate);
+
+        //new - service
+        if(stockQuotesService == null) stockQuotesService = StockQuoteServiceFactory.INSTANCE.getService(provider, restTemplate);
+        candles = stockQuotesService.getStockQuote(trade.getSymbol(), trade.getPurchaseDate(), endDate);
+        
       } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
       if (candles == null || candles.isEmpty()) continue;

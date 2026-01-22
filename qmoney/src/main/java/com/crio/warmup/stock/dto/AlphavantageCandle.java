@@ -1,15 +1,20 @@
 package com.crio.warmup.stock.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TiingoCandle implements Candle {
+public class AlphavantageCandle implements Candle {
 
+  @JsonProperty("1. open")
   private Double open;
-  private Double close;
+  @JsonProperty("2. high")
   private Double high;
+  @JsonProperty("3. low")
   private Double low;
+  @JsonProperty("4. close")
+  private Double close;
   private LocalDate date;
 
   @Override
@@ -59,7 +64,7 @@ public class TiingoCandle implements Candle {
 
   @Override
   public String toString() {
-    return "TiingoCandle{"
+    return "AlphavantageCandle{"
             + "open=" + open
             + ", close=" + close
             + ", high=" + high

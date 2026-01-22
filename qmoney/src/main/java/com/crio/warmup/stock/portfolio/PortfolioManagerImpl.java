@@ -113,5 +113,5 @@ public class PortfolioManagerImpl implements PortfolioManager {
     annualizedReturns.sort(getComparator());
     return annualizedReturns;
   }
-
+  
 }

@@ -4,6 +4,7 @@ import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+import com.crio.warmup.stock.exception.StockQuoteServiceException;
 import com.crio.warmup.stock.quotes.StockQuoteServiceFactory;
 import com.crio.warmup.stock.quotes.StockQuotesService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -89,11 +90,14 @@ public class PortfolioManagerImpl implements PortfolioManager {
         if(stockQuotesService == null) stockQuotesService = StockQuoteServiceFactory.INSTANCE.getService(provider, restTemplate);
         candles = stockQuotesService.getStockQuote(trade.getSymbol(), trade.getPurchaseDate(), endDate);
         
+      } catch (StockQuoteServiceException e) {
+        throw new RuntimeException(e);
       } catch (JsonProcessingException e) {
         throw new RuntimeException(e);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+      
       if (candles == null || candles.isEmpty()) continue;
 
       //sort stock data based on date 

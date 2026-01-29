@@ -67,5 +67,5 @@ public class TiingoCandle implements Candle {
             + ", date=" + date
             + '}';
   }
-  
+
 }

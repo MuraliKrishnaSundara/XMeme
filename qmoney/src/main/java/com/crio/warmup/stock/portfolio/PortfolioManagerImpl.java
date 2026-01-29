@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -117,5 +123,60 @@ public class PortfolioManagerImpl implements PortfolioManager {
     annualizedReturns.sort(getComparator());
     return annualizedReturns;
   }
+
+  @Override
+  public List<AnnualizedReturn> calculateAnnualizedReturnParallel(
+    List<PortfolioTrade> portfolioTrades,
+    LocalDate endDate,
+    int numThreads
+  ) throws InterruptedException, StockQuoteServiceException {
+    
+    ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+    List<Future<AnnualizedReturn>> futures = new ArrayList<>();
+  
+    for (PortfolioTrade trade : portfolioTrades) {
+      Callable<AnnualizedReturn> task = () -> {
+        List<Candle> candles;
+        try {
+          if (stockQuotesService == null) {
+            stockQuotesService = StockQuoteServiceFactory.INSTANCE.getService(provider, restTemplate);
+          }
+          candles = stockQuotesService.getStockQuote(
+            trade.getSymbol(),
+            trade.getPurchaseDate(),
+            endDate
+            );
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+          if (candles == null || candles.isEmpty()) return null;
+      
+          // Sort candles by date
+          candles.sort(Comparator.comparing(Candle::getDate));
+          Candle firstCandle = candles.get(0);
+          Candle lastCandle = candles.get(candles.size() - 1);
+          double buyPrice = firstCandle.getOpen();
+          double sellPrice = lastCandle.getClose();
+          return calculateAnnualizedReturns(endDate, trade, buyPrice, sellPrice);
+        };
+        futures.add(executorService.submit(task));
+      }
+      List<AnnualizedReturn> annualizedReturns = new ArrayList<>();
+      for (Future<AnnualizedReturn> future : futures) {
+        try {
+          AnnualizedReturn result = future.get();
+          if (result != null) {
+            annualizedReturns.add(result);
+          }
+        } catch (ExecutionException e) {
+          throw new RuntimeException(e.getCause());
+        }
+      }
+      executorService.shutdown();
+      executorService.awaitTermination(1, TimeUnit.MINUTES);
+      // Sort final result
+      annualizedReturns.sort(getComparator());
+      return annualizedReturns;
+    }
   
 }

@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock.portfolio;
 
 import com.crio.warmup.stock.dto.AnnualizedReturn;
@@ -9,7 +8,15 @@ import java.util.List;
 
 public interface PortfolioManager {
 
+  List<AnnualizedReturn> calculateAnnualizedReturnParallel(
+      List<PortfolioTrade> portfolioTrades,
+      LocalDate endDate, int numThreads) throws InterruptedException,
+      StockQuoteServiceException;
+
   //CHECKSTYLE:OFF
-  List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades, LocalDate endDate) throws StockQuoteServiceException;
+
+  List<AnnualizedReturn> calculateAnnualizedReturn(List<PortfolioTrade> portfolioTrades,
+      LocalDate endDate)
+      throws StockQuoteServiceException;
 
 }

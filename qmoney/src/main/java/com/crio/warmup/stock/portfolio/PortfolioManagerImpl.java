@@ -147,7 +147,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
             endDate
             );
           } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new StockQuoteServiceException("Error while processing request",e.getCause());
           }
           if (candles == null || candles.isEmpty()) return null;
       
@@ -169,7 +169,7 @@ public class PortfolioManagerImpl implements PortfolioManager {
             annualizedReturns.add(result);
           }
         } catch (ExecutionException e) {
-          throw new RuntimeException(e.getCause());
+          throw new StockQuoteServiceException("Error while processing request",e.getCause());
         }
       }
       executorService.shutdown();
